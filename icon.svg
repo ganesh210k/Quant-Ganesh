@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#080c0f" rx="80"/>
+  <rect x="40" y="40" width="432" height="432" fill="#0d1117" rx="60"/>
+  <!-- Chart bars -->
+  <rect x="80" y="300" width="50" height="130" fill="#1a5c1a" rx="4"/>
+  <rect x="150" y="240" width="50" height="190" fill="#1a5c1a" rx="4"/>
+  <rect x="220" y="180" width="50" height="250" fill="#2a8c2a" rx="4"/>
+  <rect x="290" y="200" width="50" height="230" fill="#1a5c1a" rx="4"/>
+  <rect x="360" y="120" width="50" height="310" fill="#4eff4e" rx="4"/>
+  <!-- Line -->
+  <polyline points="105,300 175,240 245,185 315,205 385,125" stroke="#4eff4e" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Dots -->
+  <circle cx="105" cy="300" r="8" fill="#4eff4e"/>
+  <circle cx="175" cy="240" r="8" fill="#4eff4e"/>
+  <circle cx="245" cy="185" r="8" fill="#4eff4e"/>
+  <circle cx="315" cy="205" r="8" fill="#4eff4e"/>
+  <circle cx="385" cy="125" r="10" fill="#4eff4e"/>
+  <!-- Q text -->
+  <text x="256" y="490" font-family="monospace" font-size="28" font-weight="bold" fill="#4eff4e" text-anchor="middle" letter-spacing="8">QUANT</text>
+</svg>

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="QUANT">
+<meta name="theme-color" content="#080c0f">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>QUANT//GANESH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c0f;
+  --bg2: #0d1117;
+  --bg3: #0a0f12;
+  --border: #1c1c1c;
+  --border2: #2a2a2a;
+  --green: #4eff4e;
+  --green-dark: #1a5c1a;
+  --green-bg: #0a1f0a;
+  --amber: #ffaa22;
+  --amber-bg: #1f1500;
+  --red: #ff4444;
+  --red-bg: #1f0808;
+  --blue: #44aaff;
+  --blue-bg: #0a1525;
+  --purple: #cc88ff;
+  --text: #e8e8e8;
+  --text2: #888;
+  --text3: #444;
+  --text4: #222;
+  --mono: 'IBM Plex Mono', 'Courier New', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --safe-top: env(safe-area-inset-top);
+  --safe-bot: env(safe-area-inset-bottom);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--mono); }
+body { display: flex; flex-direction: column; }
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 2px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--green-dark); border-radius: 2px; }
+
+/* Animations */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.15} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes scanline { 0%{top:-2px} 100%{top:100vh} }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 #4eff4e33} 50%{box-shadow:0 0 0 6px #4eff4e00} }
+@keyframes slideIn { from{transform:translateX(100%)} to{transform:translateX(0)} }
+@keyframes slideOut { from{transform:translateX(0)} to{transform:translateX(100%)} }
+.blink { animation: blink 1.8s infinite; }
+.fade-up { animation: fadeUp .3s ease forwards; }
+.slide-in { animation: slideIn .25s ease forwards; }
+
+/* Layout */
+#app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+
+/* Header */
+#header {
+  padding: calc(var(--safe-top) + 12px) 16px 12px;
+  background: var(--bg);
+  border-bottom: .5px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; position: relative; z-index: 50;
+}
+.header-left { display: flex; align-items: center; gap: 8px; }
+.header-title { font-size: 14px; font-weight: 600; letter-spacing: .12em; }
+.header-sub { font-size: 9px; color: var(--text4); letter-spacing: .1em; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.hdr-btn { background: transparent; border: .5px solid var(--green-dark); color: var(--green); padding: 5px 12px; border-radius: 3px; font-size: 10px; font-family: var(--mono); letter-spacing: .08em; cursor: pointer; }
+
+/* Bottom nav */
+#bottom-nav {
+  padding: 8px 0 calc(var(--safe-bot) + 6px);
+  background: var(--bg);
+  border-top: .5px solid var(--border);
+  display: flex; justify-content: space-around;
+  flex-shrink: 0;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: transparent; border: none; color: var(--text3); font-family: var(--mono);
+  font-size: 8px; letter-spacing: .08em; padding: 6px 0; cursor: pointer; transition: color .15s;
+}
+.nav-btn.active { color: var(--green); }
+.nav-icon { font-size: 16px; line-height: 1; }
+
+/* Scroll container */
+#scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+
+/* Sector pills */
+#sector-bar {
+  display: flex; gap: 6px; padding: 10px 14px; overflow-x: auto;
+  -webkit-overflow-scrolling: touch; flex-shrink: 0;
+  scrollbar-width: none; border-bottom: .5px solid var(--border);
+}
+#sector-bar::-webkit-scrollbar { display: none; }
+.s-pill {
+  white-space: nowrap; padding: 5px 13px; border-radius: 20px;
+  border: .5px solid var(--border2); background: transparent;
+  font-size: 10px; color: var(--text3); font-family: var(--mono);
+  letter-spacing: .06em; cursor: pointer; transition: all .15s; flex-shrink: 0;
+}
+.s-pill.active { background: var(--green-bg); color: var(--green); border-color: var(--green-dark); }
+
+/* Stock cards */
+.stock-card {
+  margin: 8px 12px; padding: 14px 15px;
+  background: var(--bg2); border: .5px solid var(--border);
+  border-radius: 8px; cursor: pointer;
+  transition: border-color .2s, transform .1s;
+  animation: fadeUp .3s ease forwards; opacity: 0;
+}
+.stock-card:active { transform: scale(.985); border-color: var(--green-dark); }
+.card-row1 { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.ticker { font-size: 20px; font-weight: 600; letter-spacing: .05em; color: #fff; }
+.co-name { font-size: 10px; color: var(--text3); margin-top: 1px; }
+.status-badge { font-size: 10px; padding: 3px 8px; border-radius: 3px; letter-spacing: .07em; }
+.sector-tag { font-size: 9px; color: var(--text4); margin-top: 4px; text-align: right; }
+.card-row2 { display: flex; gap: 0; margin-bottom: 10px; }
+.price-cell { flex: 1; }
+.price-cell .lbl { font-size: 9px; color: var(--text3); letter-spacing: .08em; margin-bottom: 2px; }
+.price-cell .val { font-size: 15px; font-weight: 500; }
+.arrow { font-size: 12px; color: var(--text4); align-self: center; margin: 0 8px; }
+.conviction-wrap { margin-bottom: 8px; }
+.conv-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+.conv-label { font-size: 9px; color: var(--text3); letter-spacing: .08em; }
+.conv-val { font-size: 10px; font-weight: 600; }
+.conv-bar { height: 3px; background: #111; border-radius: 2px; overflow: hidden; }
+.conv-fill { height: 100%; border-radius: 2px; transition: width .5s ease; }
+.alert-preview {
+  background: var(--bg3); border: .5px solid var(--border); border-radius: 3px;
+  padding: 6px 9px; display: flex; gap: 6px; align-items: flex-start;
+}
+.alert-icon { font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+.alert-text { font-size: 10px; color: var(--text3); line-height: 1.5; }
+.card-footer { font-size: 8px; color: var(--text4); text-align: right; margin-top: 7px; }
+
+/* Detail screen */
+#detail-screen {
+  position: fixed; inset: 0; z-index: 200;
+  background: var(--bg); display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform .25s ease;
+}
+#detail-screen.open { transform: translateX(0); }
+#detail-header {
+  padding: calc(var(--safe-top) + 12px) 16px 12px;
+  border-bottom: .5px solid var(--border);
+  display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+}
+.back-btn { background: transparent; border: .5px solid var(--border2); color: var(--text2); padding: 6px 12px; border-radius: 3px; font-size: 11px; font-family: var(--mono); cursor: pointer; }
+#detail-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px; }
+.detail-section { background: var(--bg2); border: .5px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+.detail-section-title { font-size: 9px; color: var(--text3); letter-spacing: .12em; margin-bottom: 10px; }
+.metrics-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.metric-box { background: var(--bg3); border-radius: 4px; padding: 9px 10px; }
+.metric-lbl { font-size: 9px; color: var(--text3); letter-spacing: .08em; margin-bottom: 3px; }
+.metric-val { font-size: 16px; font-weight: 600; }
+.thesis-text { font-size: 12px; color: #aaa; line-height: 1.75; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.col-card { background: var(--bg2); border-radius: 8px; padding: 12px; }
+.cat-title { font-size: 9px; letter-spacing: .1em; margin-bottom: 8px; }
+.cat-item { font-size: 11px; color: var(--text3); margin-bottom: 5px; display: flex; gap: 5px; line-height: 1.4; }
+.cat-item span:first-child { flex-shrink: 0; }
+
+/* Alert feed */
+.alert-entry { display: flex; gap: 8px; margin-bottom: 8px; padding: 8px 10px; background: var(--bg3); border-radius: 4px; }
+.alert-meta { font-size: 9px; letter-spacing: .06em; margin-bottom: 2px; }
+.alert-body { font-size: 11px; color: var(--text2); line-height: 1.5; }
+.add-alert-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.alert-type-btn { border: .5px solid var(--border); background: transparent; padding: 4px 9px; border-radius: 3px; font-size: 9px; font-family: var(--mono); cursor: pointer; letter-spacing: .05em; }
+
+/* AI Terminal */
+.terminal-box { background: var(--bg2); border: .5px solid var(--green-dark); border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+.terminal-header { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
+.terminal-label { font-size: 9px; color: var(--green); letter-spacing: .1em; }
+.terminal-input { width: 100%; background: var(--bg3); border: .5px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 12px; border-radius: 4px; padding: 10px 12px; line-height: 1.6; resize: none; outline: none; -webkit-appearance: none; }
+.terminal-input:focus { border-color: var(--green-dark); }
+.run-btn { width: 100%; background: var(--green-dark); border: none; color: var(--green); padding: 11px; border-radius: 4px; font-size: 12px; font-family: var(--mono); letter-spacing: .1em; cursor: pointer; margin-top: 8px; transition: opacity .15s; }
+.run-btn:disabled { opacity: .5; }
+.ai-output { background: var(--bg3); border: .5px solid var(--border); border-radius: 4px; padding: 12px; margin-top: 10px; }
+.ai-output-label { font-size: 9px; color: var(--green); letter-spacing: .1em; margin-bottom: 7px; }
+.ai-output-text { font-size: 11px; color: #bbb; line-height: 1.75; white-space: pre-wrap; max-height: 280px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.save-alert-btn { margin-top: 9px; background: transparent; border: .5px solid var(--green-dark); color: var(--green); padding: 5px 12px; border-radius: 3px; font-size: 9px; font-family: var(--mono); letter-spacing: .07em; cursor: pointer; }
+
+/* Conv adjuster */
+.conv-adjuster { display: flex; align-items: center; gap: 8px; }
+.adj-btn { background: var(--red-bg); border: .5px solid #3a1515; color: var(--red); width: 28px; height: 28px; border-radius: 4px; font-size: 18px; cursor: pointer; font-family: var(--mono); display: flex; align-items: center; justify-content: center; line-height: 1; }
+.adj-btn.up { background: var(--green-bg); border-color: var(--green-dark); color: var(--green); }
+.adj-val { font-size: 16px; font-weight: 600; min-width: 40px; text-align: center; }
+
+/* Watchlist view */
+#watchlist-view { display: flex; flex-direction: column; height: 100%; }
+.wl-top { display: flex; flex-shrink: 0; flex-direction: column; }
+.sort-row { display: flex; gap: 6px; padding: 8px 14px; border-bottom: .5px solid var(--border); }
+.sort-btn { padding: 4px 10px; border-radius: 20px; border: .5px solid var(--border2); background: transparent; font-size: 9px; font-family: var(--mono); color: var(--text3); letter-spacing: .06em; cursor: pointer; }
+.sort-btn.active { background: var(--green-bg); color: var(--green); border-color: var(--green-dark); }
+
+/* Terminal view */
+#terminal-view { padding: 12px; }
+.term-intro { font-size: 10px; color: var(--text3); line-height: 1.7; margin-bottom: 14px; padding: 10px 12px; background: var(--bg2); border-radius: 6px; border-left: 2px solid var(--green-dark); }
+
+/* Add view */
+#add-view { padding: 12px; }
+.add-field { margin-bottom: 10px; }
+.add-label { font-size: 9px; color: var(--text3); letter-spacing: .1em; margin-bottom: 5px; }
+.add-input { width: 100%; background: var(--bg2); border: .5px solid var(--border2); color: var(--text); font-family: var(--mono); font-size: 13px; border-radius: 4px; padding: 10px 12px; outline: none; -webkit-appearance: none; }
+.add-input:focus { border-color: var(--green-dark); }
+.add-select { width: 100%; background: var(--bg2); border: .5px solid var(--border2); color: var(--text); font-family: var(--mono); font-size: 12px; border-radius: 4px; padding: 10px 12px; outline: none; -webkit-appearance: none; }
+.add-submit { width: 100%; background: var(--green-dark); border: none; color: var(--green); padding: 13px; border-radius: 6px; font-size: 13px; font-family: var(--mono); letter-spacing: .1em; cursor: pointer; margin-top: 6px; }
+
+/* Scan line */
+.scanline { position: fixed; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #4eff4e15, transparent); pointer-events: none; z-index: 999; animation: scanline 5s linear infinite; }
+
+/* Toast */
+#toast { position: fixed; bottom: calc(var(--safe-bot) + 70px); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--green-dark); color: var(--green); font-size: 11px; letter-spacing: .08em; padding: 8px 16px; border-radius: 20px; opacity: 0; transition: all .25s; pointer-events: none; z-index: 999; white-space: nowrap; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+<div id="toast"></div>
+
+<div id="app">
+  <!-- HEADER -->
+  <div id="header">
+    <div class="header-left">
+      <div class="live-dot blink"></div>
+      <div>
+        <div class="header-title">QUANT//GANESH</div>
+        <div class="header-sub">GOLDMAN_MODE · <span id="pos-count">8</span> POSITIONS</div>
+      </div>
+    </div>
+    <button class="hdr-btn" onclick="switchTab('add')">+ ADD</button>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main-content" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+
+    <!-- WATCHLIST TAB -->
+    <div id="tab-watchlist" style="display:flex;flex-direction:column;height:100%;">
+      <div class="wl-top">
+        <div id="sector-bar"></div>
+        <div class="sort-row">
+          <button class="sort-btn active" id="sb-conviction" onclick="setSort('conviction',this)">CONVICTION</button>
+          <button class="sort-btn" id="sb-upside" onclick="setSort('upside',this)">UPSIDE ▲</button>
+          <button class="sort-btn" id="sb-az" onclick="setSort('az',this)">A–Z</button>
+        </div>
+      </div>
+      <div id="scroll-area" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+        <div id="stock-grid" style="padding-bottom:10px;"></div>
+      </div>
+    </div>
+
+    <!-- TERMINAL TAB -->
+    <div id="tab-terminal" style="display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+      <div id="terminal-view">
+        <div class="term-intro">
+          <span style="color:var(--green)">▶ GS QUANT TERMINAL — GLOBAL</span><br>
+          Ask anything about your portfolio, market conditions, new stock ideas, or pre-earnings checklists. I'll give you Goldman-grade intel before it hits Reddit.
+        </div>
+        <div class="terminal-box">
+          <div class="terminal-header">
+            <div class="live-dot blink"></div>
+            <span class="terminal-label">GLOBAL SCAN</span>
+          </div>
+          <textarea id="global-input" class="terminal-input" rows="4"
+            placeholder="'Scan AI infra for new catalysts this week'&#10;'What small caps should I watch before SpaceX IPO?'&#10;'Pre-earnings checklist for PGY May 6'&#10;'Find me the next NBIS-level setup right now'"></textarea>
+          <button class="run-btn" id="global-run-btn" onclick="runGlobal()">RUN ANALYSIS</button>
+          <div id="global-output" style="display:none;" class="ai-output">
+            <div class="ai-output-label">ANALYST OUTPUT ▼</div>
+            <div id="global-output-text" class="ai-output-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD TAB -->
+    <div id="tab-add" style="display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+      <div id="add-view">
+        <div style="font-size:9px;color:var(--green);letter-spacing:.12em;margin-bottom:14px;padding:10px 12px;background:var(--green-bg);border-radius:6px;border-left:2px solid var(--green-dark)">ADD NEW POSITION TO WATCHLIST</div>
+        <div class="add-field">
+          <div class="add-label">TICKER SYMBOL</div>
+          <input id="add-ticker" class="add-input" placeholder="e.g. NVDA" style="text-transform:uppercase">
+        </div>
+        <div class="add-field">
+          <div class="add-label">COMPANY NAME</div>
+          <input id="add-name" class="add-input" placeholder="e.g. NVIDIA Corporation">
+        </div>
+        <div class="add-field">
+          <div class="add-label">CURRENT PRICE ($)</div>
+          <input id="add-price" class="add-input" type="number" placeholder="0.00">
+        </div>
+        <div class="add-field">
+          <div class="add-label">PRICE TARGET ($)</div>
+          <input id="add-target" class="add-input" type="number" placeholder="0.00">
+        </div>
+        <div class="add-field">
+          <div class="add-label">SECTOR</div>
+          <select id="add-sector" class="add-select">
+            <option>AI Software</option>
+            <option>AI Infrastructure</option>
+            <option>Chips</option>
+            <option>Energy</option>
+            <option>Defense</option>
+            <option>Biotech</option>
+            <option>Fintech</option>
+          </select>
+        </div>
+        <div class="add-field">
+          <div class="add-label">THESIS (optional)</div>
+          <textarea id="add-thesis" class="add-input" rows="3" placeholder="Why are you watching this stock?" style="resize:none;line-height:1.6"></textarea>
+        </div>
+        <button class="add-submit" onclick="addStock()">ADD TO WATCHLIST</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div id="bottom-nav">
+    <button class="nav-btn active" id="nav-watchlist" onclick="switchTab('watchlist')">
+      <span class="nav-icon">◧</span>
+      <span>WATCHLIST</span>
+    </button>
+    <button class="nav-btn" id="nav-terminal" onclick="switchTab('terminal')">
+      <span class="nav-icon">⌘</span>
+      <span>TERMINAL</span>
+    </button>
+    <button class="nav-btn" id="nav-add" onclick="switchTab('add')">
+      <span class="nav-icon">＋</span>
+      <span>ADD</span>
+    </button>
+  </div>
+</div>
+
+<!-- DETAIL SCREEN (full-screen overlay) -->
+<div id="detail-screen">
+  <div id="detail-header">
+    <button class="back-btn" onclick="closeDetail()">← BACK</button>
+    <div>
+      <div id="detail-ticker" style="font-size:18px;font-weight:600;letter-spacing:.06em;color:#fff"></div>
+      <div id="detail-name" style="font-size:10px;color:var(--text3)"></div>
+    </div>
+    <div id="detail-status" style="margin-left:auto"></div>
+  </div>
+  <div id="detail-scroll">
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const SECTORS = ['All','AI Software','AI Infrastructure','Chips','Energy','Defense','Biotech','Fintech'];
+const AT = { BULL:{i:'▲',c:'#4eff4e'}, WATCH:{i:'◉',c:'#ffaa22'}, INFO:{i:'◆',c:'#44aaff'}, SPEC:{i:'⚡',c:'#cc88ff'}, BEAR:{i:'▼',c:'#ff4444'} };
+const SC = { 'BUY':{bg:'#0a1f0a',bd:'#1a5c1a',tx:'#4eff4e'}, 'SPEC BUY':{bg:'#1f1500',bd:'#5c3d00',tx:'#ffaa22'}, 'HOLD':{bg:'#0a1020',bd:'#1a3a5c',tx:'#44aaff'}, 'WATCH':{bg:'#111',bd:'#333',tx:'#888'} };
+const CC = c => c>=8?'#4eff4e':c>=6?'#ffaa22':'#ff5555';
+
+const DEFAULT_STOCKS = [
+  {id:'PGY',ticker:'PGY',name:'Pagaya Technologies',sector:'AI Software',conviction:9,price:11.65,target:32.00,horizon:'1–2 yr',status:'BUY',upd:'Apr 4, 2026',thesis:'B2B AI credit infrastructure — misclassified as a lender. 0.43x EV/Revenue vs Upstart 6.26x. 44.5% ROE. $81M GAAP net income 2025. May 6 earnings is the key near-term catalyst.',cats:['May 6 Q1 earnings print','Network volume re-acceleration H2 2026','Institutional re-rating from lender → AI infra'],risks:['Credit cycle sensitivity','15.4% short interest volatility','Ongoing share dilution'],alerts:[{d:'Apr 4',t:'WATCH',tx:'May 6 Q1 print: network vol $2.5–2.7B guidance. Any beat = sharp rally.'},{d:'Apr 4',t:'INFO',tx:'Zacks #5 rating overhang = classic contrarian buy signal for patient investors.'}]},
+  {id:'EVLV',ticker:'EVLV',name:'Evolv Technology',sector:'AI Software',conviction:7,price:6.10,target:9.83,horizon:'2–3 yr',status:'BUY',upd:'Apr 4, 2026',thesis:'AI touchless weapons screening SaaS. 1,200+ customers. ARR $120.5M (+21%). Direct fulfillment shift = near-term margin pain, long-term ARR compounding engine.',cats:['ARR $145–150M end of 2026','Direct fulfillment model validation','School/govt contract wave'],risks:['GAAP net loss -$33M 2025','Model transition margin headwind','Budget-sensitive TAM'],alerts:[{d:'Mar 18',t:'BULL',tx:'Houston Astros + Tennessee Titans renewals confirm sticky retention.'},{d:'Apr 4',t:'WATCH',tx:'Strong buy zone $4.50–$5.50. Current price near acceptable entry.'}]},
+  {id:'INOD',ticker:'INOD',name:'Innodata Inc.',sector:'AI Software',conviction:8,price:9.20,target:18.00,horizon:'1–2 yr',status:'BUY',upd:'Apr 4, 2026',thesis:'Hidden AI training data supplier for LLM builders. 5 consecutive earnings beats. 45% FY2025 guided growth. On 200-day SMA after 30% pullback — classic accumulation zone.',cats:['LLM capex acceleration 2026','Enterprise client expansion','Margin expansion toward 30%+'],risks:['High volatility — 30% swings','Commoditization risk long-term','Customer concentration'],alerts:[{d:'Apr 4',t:'BULL',tx:'Pulled back to 200-day SMA. Bullish MACD crossover forming. Strong entry zone now.'}]},
+  {id:'NNE',ticker:'NNE',name:'Nano Nuclear Energy',sector:'Energy',conviction:5,price:14.50,target:40.00,horizon:'2–3 yr',status:'SPEC BUY',upd:'Apr 4, 2026',thesis:'Micro-reactors (ZEUS, KRONOS, LOKI) for AI data centers and military. Pre-revenue. AI power shortage = massive demand driver. 10x if permits materialize.',cats:['NRC regulatory progress','DoD partnership announcement','Data center MOU signing'],risks:['Pre-revenue — high dilution risk','Long regulatory timeline 3–5yr','Binary execution risk'],alerts:[{d:'Apr 4',t:'SPEC',tx:'Max 2% position. Binary outcome — either 10x or near zero. Do not oversize.'}]},
+  {id:'PWR',ticker:'PWR',name:'Quanta Services',sector:'AI Infrastructure',conviction:8,price:310.00,target:478.00,horizon:'2–3 yr',status:'BUY',upd:'Apr 4, 2026',thesis:'Grid + data center + clean energy infrastructure. Every $200B hyperscaler capex = more grid work for Quanta. 18 of 29 analysts Strong Buy. Picks-and-shovels with real earnings.',cats:['Hyperscaler CapEx cycle 2026–2028','Grid modernization contracts','Renewable buildout mandates'],risks:['Tariff impact on materials','Already +33% in 2025','Labor market tightness'],alerts:[{d:'Apr 4',t:'BULL',tx:"Amazon $200B capex announced. Every data center needs grid work. PWR is the direct beneficiary."}]},
+  {id:'TSHA',ticker:'TSHA',name:'Taysha Gene Therapies',sector:'Biotech',conviction:5,price:3.80,target:18.00,horizon:'1–2 yr binary',status:'SPEC BUY',upd:'Apr 4, 2026',thesis:'FDA Breakthrough gene therapy for Rett syndrome. Regained full rights from Astellas. REVEAL trial 2026 = binary 5–10x catalyst. BLA threshold only 33% vs 100% early success.',cats:['REVEAL trial interim data 2026','BLA filing if threshold met','Orphan drug pricing power'],risks:['Binary trial outcome','Significant dilution risk','Small float extreme volatility'],alerts:[{d:'Apr 4',t:'SPEC',tx:'Max 1–2% position. Pure binary bet on trial readout.'}]},
+  {id:'TDY',ticker:'TDY',name:'Teledyne Technologies',sector:'Defense',conviction:7,price:380.00,target:499.00,horizon:'2–3 yr',status:'BUY',upd:'Apr 4, 2026',thesis:'Defense sensors and imaging — record quarters, near zero retail radar. High-margin, high-barrier products. Beating S&P 500 YTD. Quiet institutional compounder.',cats:['Defense budget expansion','Space/satellite sensor contracts','Industrial automation demand'],risks:['DOGE-related DoD cuts','Premium valuation','Acquisition integration risk'],alerts:[{d:'Apr 4',t:'INFO',tx:'Beating market YTD with almost no retail coverage. Early on discovery curve.'}]},
+  {id:'AVGO',ticker:'AVGO',name:'Broadcom Inc.',sector:'Chips',conviction:8,price:198.00,target:265.00,horizon:'1–2 yr',status:'BUY',upd:'Apr 4, 2026',thesis:'Custom AI chip (XPU) king for hyperscalers. Google, Meta, Apple contracts. AI revenue $12.2B FY2024, guiding $60–90B TAM by 2027. VMware adds software moat.',cats:['Hyperscaler custom XPU ramp','VMware software revenue','AI TAM expansion to $90B by 2027'],risks:['Nvidia competition for inference','Tariff supply chain risk','Customer concentration Google/Meta'],alerts:[{d:'Apr 4',t:'BULL',tx:'Custom silicon trend accelerating — every hyperscaler wants to reduce Nvidia dependency.'}]}
+];
+
+// ===================== STATE =====================
+let stocks, curSector='All', curSort='conviction', curTab='watchlist', curDetail=null;
+
+function save(){ try{ localStorage.setItem('gq_iphone_v1', JSON.stringify(stocks)); }catch(e){} }
+function load(){
+  try{
+    const d = localStorage.getItem('gq_iphone_v1');
+    stocks = d ? JSON.parse(d) : JSON.parse(JSON.stringify(DEFAULT_STOCKS));
+  }catch(e){ stocks = JSON.parse(JSON.stringify(DEFAULT_STOCKS)); }
+}
+load();
+
+function today(){ return new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function upside(s){ if(!s.price||!s.target) return null; return Math.round((s.target-s.price)/s.price*100); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+
+// ===================== TABS =====================
+function switchTab(tab){
+  ['watchlist','terminal','add'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display = t===tab ? (t==='watchlist'?'flex':'block') : 'none';
+    document.getElementById('nav-'+t).classList.toggle('active', t===tab);
+  });
+  curTab=tab;
+}
+
+// ===================== SECTOR / SORT =====================
+function buildSectors(){
+  const bar=document.getElementById('sector-bar'); bar.innerHTML='';
+  SECTORS.forEach(s=>{
+    const b=document.createElement('button');
+    b.className='s-pill'+(curSector===s?' active':'');
+    b.textContent=s;
+    b.onclick=()=>{ curSector=s; buildSectors(); renderGrid(); };
+    bar.appendChild(b);
+  });
+}
+
+function setSort(s,el){
+  curSort=s;
+  document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); renderGrid();
+}
+
+function getFiltered(){
+  return stocks
+    .filter(s=> curSector==='All'||s.sector===curSector)
+    .sort((a,b)=>{
+      if(curSort==='conviction') return b.conviction-a.conviction;
+      if(curSort==='upside'){ const ua=upside(a)||0,ub=upside(b)||0; return ub-ua; }
+      return a.ticker.localeCompare(b.ticker);
+    });
+}
+
+// ===================== GRID =====================
+function renderGrid(){
+  const g=document.getElementById('stock-grid'); g.innerHTML='';
+  document.getElementById('pos-count').textContent=stocks.length;
+  getFiltered().forEach((s,i)=>{
+    const sc=SC[s.status]||SC['WATCH'];
+    const up=upside(s); const al=s.alerts[0];
+    const div=document.createElement('div');
+    div.className='stock-card'; div.style.animationDelay=(i*.05)+'s';
+    div.innerHTML=`
+      <div class="card-row1">
+        <div><div class="ticker">${s.ticker}</div><div class="co-name">${s.name}</div></div>
+        <div style="text-align:right">
+          <div class="status-badge" style="background:${sc.bg};border:.5px solid ${sc.bd};color:${sc.tx}">${s.status}</div>
+          <div class="sector-tag">${s.sector}</div>
+        </div>
+      </div>
+      <div class="card-row2">
+        <div class="price-cell"><div class="lbl">PRICE</div><div class="val">${s.price>0?'$'+s.price.toFixed(2):'—'}</div></div>
+        <div class="arrow">→</div>
+        <div class="price-cell"><div class="lbl">TARGET</div><div class="val" style="color:#4eff4e">${s.target>0?'$'+s.target.toFixed(2):'—'}</div></div>
+        <div style="margin-left:auto;text-align:right">
+          <div class="lbl">UPSIDE</div>
+          <div class="val" style="color:${up!==null&&up>50?'#4eff4e':up!==null&&up>20?'#ffaa22':'#ff5555'}">${up!==null?'+'+up+'%':'—'}</div>
+        </div>
+      </div>
+      <div class="conviction-wrap">
+        <div class="conv-row"><span class="conv-label">CONVICTION</span><span class="conv-val" style="color:${CC(s.conviction)}">${s.conviction}/10</span></div>
+        <div class="conv-bar"><div class="conv-fill" style="width:${s.conviction*10}%;background:${CC(s.conviction)}"></div></div>
+      </div>
+      ${al?`<div class="alert-preview"><span class="alert-icon" style="color:${AT[al.t]?.c||'#aaa'}">${AT[al.t]?.i||'◆'}</span><span class="alert-text">${al.tx.length>85?al.tx.slice(0,85)+'...':al.tx}</span></div>`:''}
+      <div class="card-footer">UPDATED ${s.upd}</div>
+    `;
+    div.onclick=()=>openDetail(s.id);
+    g.appendChild(div);
+  });
+}
+
+// ===================== DETAIL =====================
+function openDetail(id){
+  curDetail=id; const s=stocks.find(x=>x.id===id); if(!s) return;
+  const sc=SC[s.status]||SC['WATCH']; const up=upside(s);
+  document.getElementById('detail-ticker').textContent=s.ticker;
+  document.getElementById('detail-name').textContent=s.name;
+  document.getElementById('detail-status').innerHTML=`<span class="status-badge" style="background:${sc.bg};border:.5px solid ${sc.bd};color:${sc.tx};font-size:10px;padding:3px 8px;border-radius:3px;letter-spacing:.07em">${s.status}</span>`;
+  
+  const dc=document.getElementById('detail-content');
+  dc.innerHTML=`
+    <!-- Metrics -->
+    <div class="detail-section">
+      <div class="detail-section-title">POSITION METRICS</div>
+      <div class="metrics-row" style="margin-bottom:12px">
+        <div class="metric-box"><div class="metric-lbl">PRICE</div><div class="metric-val">${s.price>0?'$'+s.price.toFixed(2):'—'}</div></div>
+        <div class="metric-box"><div class="metric-lbl">TARGET</div><div class="metric-val" style="color:#4eff4e">${s.target>0?'$'+s.target.toFixed(2):'—'}</div></div>
+        <div class="metric-box"><div class="metric-lbl">UPSIDE</div><div class="metric-val" style="color:${up!==null&&up>50?'#4eff4e':up!==null&&up>20?'#ffaa22':'#ff5555'}">${up!==null?'+'+up+'%':'—'}</div></div>
+      </div>
+      <div class="detail-section-title" style="margin-top:8px">CONVICTION SCORE</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="adj-btn" onclick="adjConv('${s.id}',-1)">−</button>
+        <div style="flex:1">
+          <div class="conv-bar" style="height:5px"><div class="conv-fill" id="cbar-${s.id}" style="width:${s.conviction*10}%;background:${CC(s.conviction)}"></div></div>
+        </div>
+        <span id="cval-${s.id}" style="font-size:15px;font-weight:600;color:${CC(s.conviction)};min-width:36px;text-align:center">${s.conviction}/10</span>
+        <button class="adj-btn up" onclick="adjConv('${s.id}',1)">+</button>
+      </div>
+    </div>
+
+    <!-- Thesis -->
+    <div class="detail-section">
+      <div class="detail-section-title">INVESTMENT THESIS</div>
+      <div class="thesis-text">${s.thesis}</div>
+    </div>
+
+    <!-- Catalysts + Risks -->
+    <div class="two-col">
+      <div class="col-card" style="border:.5px solid #0a2a0a">
+        <div class="cat-title" style="color:#4eff4e">CATALYSTS</div>
+        ${s.cats.map(c=>`<div class="cat-item"><span style="color:#4eff4e">▶</span><span>${c}</span></div>`).join('')}
+      </div>
+      <div class="col-card" style="border:.5px solid #2a0a0a">
+        <div class="cat-title" style="color:#ff4444">RISKS</div>
+        ${s.risks.map(r=>`<div class="cat-item"><span style="color:#ff4444">▼</span><span>${r}</span></div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Alert feed -->
+    <div class="detail-section">
+      <div class="detail-section-title" style="margin-bottom:8px">ANALYST ALERTS</div>
+      <div class="add-alert-row">
+        ${Object.keys(AT).map(t=>`<button class="alert-type-btn" style="color:${AT[t].c};border-color:#1a1a1a" onclick="promptAlert('${s.id}','${t}')">${AT[t].i} ${t}</button>`).join('')}
+      </div>
+      <div id="alerts-${s.id}">
+        ${s.alerts.length===0?`<div style="font-size:11px;color:var(--text4);padding:8px 0">No alerts yet. Use the AI terminal below.</div>`:''}
+        ${s.alerts.map(a=>`
+        <div class="alert-entry">
+          <span style="font-size:12px;color:${AT[a.t]?.c||'#aaa'};flex-shrink:0">${AT[a.t]?.i||'◆'}</span>
+          <div><div class="alert-meta" style="color:${AT[a.t]?.c||'#aaa'}">${a.t} · ${a.d}</div><div class="alert-body">${a.tx}</div></div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- AI Terminal -->
+    <div class="terminal-box">
+      <div class="terminal-header">
+        <div class="live-dot blink"></div>
+        <span class="terminal-label">GS QUANT TERMINAL — ${s.ticker}</span>
+      </div>
+      <textarea id="ai-in-${s.id}" class="terminal-input" rows="4"
+        placeholder="Ask anything about ${s.ticker}...&#10;&#10;'Bull case if Q1 beats estimates?'&#10;'Any red flags in earnings call?'&#10;'Short squeeze setup here?'&#10;'What's the next catalyst date?'"></textarea>
+      <button class="run-btn" id="ai-run-${s.id}" onclick="runStockAI('${s.id}')">RUN ANALYSIS</button>
+      <div id="ai-out-${s.id}" style="display:none" class="ai-output">
+        <div class="ai-output-label">ANALYST OUTPUT ▼</div>
+        <div id="ai-out-text-${s.id}" class="ai-output-text"></div>
+        <button class="save-alert-btn" onclick="saveOutputToAlert('${s.id}')">+ SAVE TO ALERTS</button>
+      </div>
+    </div>
+
+    <div style="height:20px"></div>
+  `;
+  document.getElementById('detail-screen').classList.add('open');
+  document.getElementById('detail-screen').scrollTop=0;
+}
+
+function closeDetail(){
+  document.getElementById('detail-screen').classList.remove('open');
+  setTimeout(()=>{ curDetail=null; }, 260);
+}
+
+function adjConv(id,delta){
+  const s=stocks.find(x=>x.id===id); if(!s) return;
+  s.conviction=Math.max(1,Math.min(10,s.conviction+delta)); save();
+  const bar=document.getElementById('cbar-'+id);
+  const val=document.getElementById('cval-'+id);
+  if(bar){ bar.style.width=s.conviction*10+'%'; bar.style.background=CC(s.conviction); }
+  if(val){ val.textContent=s.conviction+'/10'; val.style.color=CC(s.conviction); }
+  toast('Conviction updated: '+s.conviction+'/10');
+}
+
+function promptAlert(id,type){
+  const note=prompt(`Add ${type} alert for ${id}:`);
+  if(!note) return;
+  const s=stocks.find(x=>x.id===id); if(!s) return;
+  s.alerts.unshift({d:today(),t:type,tx:note});
+  s.alerts=s.alerts.slice(0,12); s.upd=today(); save();
+  const feed=document.getElementById('alerts-'+id);
+  if(feed) feed.innerHTML=s.alerts.map(a=>`
+    <div class="alert-entry">
+      <span style="font-size:12px;color:${AT[a.t]?.c||'#aaa'};flex-shrink:0">${AT[a.t]?.i||'◆'}</span>
+      <div><div class="alert-meta" style="color:${AT[a.t]?.c||'#aaa'}">${a.t} · ${a.d}</div><div class="alert-body">${a.tx}</div></div>
+    </div>`).join('');
+  toast('Alert saved!');
+}
+
+function saveOutputToAlert(id){
+  const el=document.getElementById('ai-out-text-'+id); if(!el) return;
+  const txt=el.textContent.slice(0,220)+(el.textContent.length>220?'...':'');
+  const s=stocks.find(x=>x.id===id); if(!s) return;
+  s.alerts.unshift({d:today(),t:'INFO',tx:txt});
+  s.alerts=s.alerts.slice(0,12); s.upd=today(); save();
+  toast('Saved to alerts!');
+}
+
+// ===================== AI =====================
+async function runStockAI(id){
+  const s=stocks.find(x=>x.id===id); if(!s) return;
+  const inp=document.getElementById('ai-in-'+id);
+  const btn=document.getElementById('ai-run-'+id);
+  const outDiv=document.getElementById('ai-out-'+id);
+  const outText=document.getElementById('ai-out-text-'+id);
+  if(!inp||!inp.value.trim()) return;
+  btn.textContent='ANALYZING...'; btn.disabled=true;
+  outDiv.style.display='block'; outText.textContent='';
+  const ctx=`You are an elite Goldman Sachs quant analyst — sharp, data-driven, no hedging. Stock: ${s.ticker} (${s.name}), sector: ${s.sector}, thesis: "${s.thesis}", conviction: ${s.conviction}/10, price: $${s.price}, target: $${s.target}. Give specific, actionable analysis. No disclaimers. `;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:ctx+inp.value}]})
+    });
+    const data=await res.json();
+    outText.textContent=data.content?.find(b=>b.type==='text')?.text||'No response.';
+  }catch(e){ outText.textContent='Network error. Check your connection.'; }
+  btn.textContent='RUN ANALYSIS'; btn.disabled=false;
+}
+
+async function runGlobal(){
+  const inp=document.getElementById('global-input');
+  const btn=document.getElementById('global-run-btn');
+  const outDiv=document.getElementById('global-output');
+  const outText=document.getElementById('global-output-text');
+  if(!inp||!inp.value.trim()) return;
+  btn.textContent='RUNNING...'; btn.disabled=true;
+  outDiv.style.display='block'; outText.textContent='';
+  const ctx=`You are an elite Goldman Sachs quant analyst. Be direct, specific, no disclaimers. Current watchlist: ${stocks.map(s=>s.ticker+'('+s.sector+', conviction '+s.conviction+'/10, upside '+(upside(s)||'?')+'%)').join(', ')}. `;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:ctx+inp.value}]})
+    });
+    const data=await res.json();
+    outText.textContent=data.content?.find(b=>b.type==='text')?.text||'No response.';
+  }catch(e){ outText.textContent='Network error. Check your connection.'; }
+  btn.textContent='RUN ANALYSIS'; btn.disabled=false;
+}
+
+// ===================== ADD STOCK =====================
+function addStock(){
+  const ticker=(document.getElementById('add-ticker').value||'').toUpperCase().trim();
+  const name=document.getElementById('add-name').value.trim()||ticker;
+  const price=parseFloat(document.getElementById('add-price').value)||0;
+  const target=parseFloat(document.getElementById('add-target').value)||0;
+  const sector=document.getElementById('add-sector').value;
+  const thesis=document.getElementById('add-thesis').value.trim()||'Thesis pending analyst review.';
+  if(!ticker){ toast('Enter a ticker!'); return; }
+  if(stocks.find(s=>s.id===ticker)){ toast(ticker+' already in watchlist'); return; }
+  stocks.push({ id:ticker,ticker,name,sector,conviction:5,price,target,horizon:'?',status:'WATCH',upd:today(),thesis,cats:['Pending analysis'],risks:['Pending analysis'],alerts:[] });
+  save();
+  ['add-ticker','add-name','add-price','add-target','add-thesis'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  toast(ticker+' added to watchlist!');
+  renderGrid();
+  switchTab('watchlist');
+}
+
+// ===================== INIT =====================
+buildSectors();
+renderGrid();
+
+// Handle back button / swipe on iOS
+window.addEventListener('popstate', ()=>{ if(curDetail) closeDetail(); });
+
+// Register service worker for offline support
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
