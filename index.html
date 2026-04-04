@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="QUANT">
 <meta name="theme-color" content="#080c0f">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon.svg">
 <title>QUANT//GANESH</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -658,7 +658,7 @@ window.addEventListener('popstate', ()=>{ if(curDetail) closeDetail(); });
 
 // Register service worker for offline support
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
 </script>
 </body>

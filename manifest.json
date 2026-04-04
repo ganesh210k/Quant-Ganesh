@@ -2,14 +2,15 @@
   "name": "QUANT//GANESH",
   "short_name": "QUANT",
   "description": "Personal Goldman Sachs quant terminal — AI-powered stock watchlist",
-  "start_url": "/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#080c0f",
   "theme_color": "#080c0f",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
