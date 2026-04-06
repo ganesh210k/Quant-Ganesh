@@ -199,11 +199,48 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
 /* DELETE */
 .delbtn{background:var(--rdb);border:.5px solid #3a0015;color:var(--rd);padding:6px 14px;border-radius:4px;font-size:10px;font-family:var(--mn);cursor:pointer;margin-left:auto;letter-spacing:.06em}
 .delbtn:active{transform:scale(.95)}
+
+/* API KEY SETUP SCREEN */
+#apisetup{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px}
+#apisetup.hidden{display:none}
+.setup-logo{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--g);letter-spacing:.12em;margin-bottom:6px;text-align:center}
+.setup-sub{font-size:10px;color:var(--t3);letter-spacing:.18em;margin-bottom:30px;text-align:center}
+.setup-card{background:var(--bg2);border:.5px solid var(--b2);border-radius:12px;padding:22px;width:100%;max-width:400px}
+.setup-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--bl);margin-bottom:6px;letter-spacing:.04em}
+.setup-desc{font-size:11px;color:var(--t2);line-height:1.7;margin-bottom:18px}
+.setup-step{font-size:10px;color:var(--t3);margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;line-height:1.5}
+.step-num{background:var(--blb);border:.5px solid var(--bld);color:var(--bl);width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0;margin-top:1px}
+.setup-input{width:100%;background:var(--bg3);border:.5px solid var(--b2);color:var(--tx);font-family:var(--mn);font-size:12px;border-radius:5px;padding:12px 14px;outline:none;-webkit-appearance:none;margin-bottom:10px;letter-spacing:.04em}
+.setup-input:focus{border-color:var(--bld)}
+.setup-btn{width:100%;background:linear-gradient(135deg,var(--gb),#0a2a18);border:.5px solid var(--gd);color:var(--g);padding:13px;border-radius:6px;font-size:12px;font-family:var(--mn);letter-spacing:.12em;cursor:pointer;transition:all .15s}
+.setup-btn:active{transform:scale(.98)}
+.setup-note{font-size:9px;color:var(--t4);text-align:center;margin-top:10px;line-height:1.6}
+.setup-link{color:var(--bl);text-decoration:none}
+.key-status{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--gb);border:.5px solid var(--gd);border-radius:20px;margin-bottom:10px}
+.key-status-txt{font-size:10px;color:var(--g);letter-spacing:.08em}
+.key-change{font-size:9px;color:var(--t3);cursor:pointer;text-decoration:underline;background:none;border:none;font-family:var(--mn)}
 </style>
 </head>
 <body>
 <div class="sl"></div>
 <div id="toast"></div>
+
+<!-- API KEY SETUP SCREEN -->
+<div id="apisetup">
+  <div class="setup-logo">QUANT//GANESH</div>
+  <div class="setup-sub">GOLDMAN MODE · ONE-TIME SETUP</div>
+  <div class="setup-card">
+    <div class="setup-title">Connect Your AI Analyst</div>
+    <div class="setup-desc">You need a free Anthropic API key to power the AI terminal, screener, and deep dive analysis. Your key is stored only on your phone — never sent anywhere except Anthropic.</div>
+    <div class="setup-step"><span class="step-num">1</span><span>Go to <a href="https://console.anthropic.com" class="setup-link" target="_blank">console.anthropic.com</a> in Safari</span></div>
+    <div class="setup-step"><span class="step-num">2</span><span>Sign up free → click <strong style="color:var(--tx)">API Keys</strong> → <strong style="color:var(--tx)">Create Key</strong></span></div>
+    <div class="setup-step"><span class="step-num">3</span><span>Copy the key (starts with <code style="color:var(--bl)">sk-ant-</code>) and paste below</span></div>
+    <input id="api-key-input" class="setup-input" type="password" placeholder="sk-ant-api03-..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+    <button class="setup-btn" onclick="saveApiKey()">CONNECT & LAUNCH TERMINAL</button>
+    <div class="setup-note">Your key is saved locally on your device only.<br>~$1–3/month typical usage. <a href="https://console.anthropic.com" class="setup-link" target="_blank">Check usage anytime →</a></div>
+  </div>
+</div>
+
 <div id="app">
 
 <div id="hdr">
@@ -268,7 +305,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
 <div class="scrl"><div style="padding:12px">
   <div style="background:var(--bg2);border:.5px solid var(--b2);border-radius:9px;padding:13px;margin-bottom:12px;border-left:2px solid var(--bl)">
     <div style="font-family:var(--dp);font-size:13px;font-weight:700;color:var(--bl);margin-bottom:5px;letter-spacing:.04em">GS QUANT TERMINAL</div>
-    <div style="font-size:11px;color:var(--t2);line-height:1.7">Your personal Goldman Sachs quant analyst. Full portfolio context pre-loaded. Ask about valuations, position sizing, entry points, earnings prep, or anything else.</div>
+    <div style="font-size:11px;color:var(--t2);line-height:1.7">Your personal Goldman Sachs quant analyst. Full portfolio context pre-loaded. Ask about valuations, position sizing, entry points, earnings prep, or anything else.</div><div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between"><span id="key-indicator" style="font-size:9px;color:var(--g);letter-spacing:.08em"></span><button onclick="resetApiKey()" style="background:transparent;border:.5px solid var(--b2);color:var(--t3);font-size:9px;font-family:var(--mn);padding:4px 10px;border-radius:4px;cursor:pointer;letter-spacing:.06em">CHANGE API KEY</button></div>
   </div>
   <div class="trm">
     <div class="trh"><div class="blink" style="width:5px;height:5px;border-radius:50%;background:var(--g);flex-shrink:0"></div><span class="trl">PORTFOLIO TERMINAL</span></div>
@@ -669,7 +706,7 @@ async function callAI(prompt,btnId,outId,txtId,origLabel){
   const port=`Current portfolio: ${stocks.map(s=>`${s.ticker}(${s.sector}, conviction:${s.conviction}/10, price:$${s.price}, target:$${s.target}, value score:${s.valueScore}/100, status:${s.status})`).join(', ')}`;
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1400,system:SYS,messages:[{role:'user',content:port+'\n\n'+prompt}]})
     });
     const data=await res.json();
@@ -690,7 +727,7 @@ async function runDetAI(id){
   const ctx=`Stock: ${s.ticker} (${s.name}), sector:${s.sector}, thesis:"${s.thesis.slice(0,200)}", conviction:${s.conviction}/10, price:$${s.price}, target:$${s.target}, value score:${s.valueScore}/100, status:${s.status}.\n\n`;
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1400,system:SYS,messages:[{role:'user',content:ctx+inp.value}]})
     });
     const data=await res.json();
@@ -754,7 +791,31 @@ function setIntelMode(el,prompt){
   const inp=document.getElementById('in-inp');if(inp)inp.value=prompt;
 }
 
+
+// ══════ API KEY MANAGEMENT ══════
+function getApiKey(){return localStorage.getItem('gq_apikey')||''}
+function saveApiKey(){
+  const k=document.getElementById('api-key-input').value.trim();
+  if(!k||!k.startsWith('sk-ant-')){
+    toast('Key must start with sk-ant-','red');return;
+  }
+  localStorage.setItem('gq_apikey',k);
+  document.getElementById('apisetup').classList.add('hidden');
+  toast('API key saved! Terminal is live.');
+}
+function checkApiKey(){
+  const k=getApiKey();
+  if(!k){document.getElementById('apisetup').classList.remove('hidden');}
+  else{document.getElementById('apisetup').classList.add('hidden');}
+}
+function resetApiKey(){
+  localStorage.removeItem('gq_apikey');
+  document.getElementById('apisetup').classList.remove('hidden');
+  document.getElementById('api-key-input').value='';
+}
+
 // ══════ INIT ══════
+checkApiKey();
 buildSecs();renderGrid();renderIntelFeed();buildScreenCards();buildIntelModes();
 window.addEventListener('popstate',()=>{
   if(document.getElementById('det').classList.contains('open'))closeDet();
