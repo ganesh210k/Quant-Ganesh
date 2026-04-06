@@ -233,23 +233,29 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-
   <div class="setup-logo">QUANT//GANESH</div>
   <div class="setup-sub">GOLDMAN MODE · ONE-TIME SETUP</div>
   <div class="setup-card">
-    <div class="setup-title">Connect Your Research Terminal</div>
-    <div class="setup-desc">Two free keys unlock everything — live prices, real-time news, earnings data, and AI analysis. Takes 3 minutes. Both stored only on your device.</div>
-    <div style="background:var(--blb);border:.5px solid var(--bld);border-radius:7px;padding:12px;margin-bottom:12px">
-      <div style="font-size:10px;color:var(--bl);letter-spacing:.1em;margin-bottom:8px;font-weight:600">① ANTHROPIC — AI ANALYST ENGINE</div>
+    <div class="setup-title">Connect Your AI Analyst</div>
+    <div class="setup-desc">Paste your Anthropic API key to power the AI terminal, screener, and deep dive analysis. Your key is stored only on your device.</div>
+
+    <div style="background:var(--blb);border:.5px solid var(--bld);border-radius:7px;padding:12px;margin-bottom:14px">
+      <div style="font-size:10px;color:var(--bl);letter-spacing:.1em;margin-bottom:8px;font-weight:600">ANTHROPIC API KEY — REQUIRED</div>
       <div class="setup-step"><span class="step-num">1</span><span>Go to <a href="https://console.anthropic.com" class="setup-link" target="_blank">console.anthropic.com</a></span></div>
       <div class="setup-step"><span class="step-num">2</span><span>Sign up free → API Keys → Create Key</span></div>
+      <div class="setup-step"><span class="step-num">3</span><span>Copy the key (starts with <code style="color:var(--bl)">sk-ant-</code>) and paste below</span></div>
       <input id="api-key-input" class="setup-input" type="password" placeholder="sk-ant-api03-..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
     </div>
-    <div style="background:var(--gb);border:.5px solid var(--gd);border-radius:7px;padding:12px;margin-bottom:14px">
-      <div style="font-size:10px;color:var(--g);letter-spacing:.1em;margin-bottom:8px;font-weight:600">② FINNHUB — LIVE MARKET DATA</div>
-      <div class="setup-step"><span class="step-num">1</span><span>Go to <a href="https://finnhub.io" class="setup-link" target="_blank">finnhub.io</a> → Get free API key</span></div>
-      <div class="setup-step"><span class="step-num">2</span><span>No credit card needed — key appears instantly</span></div>
-      <input id="fh-key-input" class="setup-input" type="password" placeholder="Finnhub API key..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-      <div style="font-size:9px;color:var(--t3);margin-top:5px">Powers: live price, change%, news, earnings dates, analyst upgrades, insider trades, recommendations</div>
-    </div>
+
     <button class="setup-btn" onclick="saveApiKey()">LAUNCH TERMINAL</button>
-    <div class="setup-note">Both keys stay on your device only. Anthropic ~$1–3/month. Finnhub free forever.<br><br>Already set up? <button onclick="saveApiKey()" style="background:none;border:none;color:var(--bl);font-size:9px;cursor:pointer;font-family:var(--mn);text-decoration:underline">Skip Finnhub for now →</button></div>
+
+    <div class="setup-note">
+      Key is saved locally on your device only. ~$1–3/month typical usage.<br>
+      <a href="https://console.anthropic.com" class="setup-link" target="_blank">Monitor usage at console.anthropic.com →</a>
+    </div>
+
+    <div style="margin-top:14px;padding-top:14px;border-top:.5px solid var(--b1)">
+      <div style="font-size:9px;color:var(--t3);letter-spacing:.12em;margin-bottom:8px">OPTIONAL — LIVE MARKET DATA</div>
+      <div style="font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:10px">Add a free Finnhub key later for live stock prices. Not needed for AI analysis. Get one at <a href="https://finnhub.io" class="setup-link" target="_blank">finnhub.io</a> — no credit card.</div>
+      <input id="fh-key-input" class="setup-input" type="password" placeholder="Finnhub key (optional — skip if unsure)" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" style="opacity:.7">
+    </div>
   </div>
 </div>
 
@@ -888,7 +894,7 @@ function saveApiKey(){
   localStorage.setItem('gq_apikey',k);
   if(fk) localStorage.setItem('gq_fhkey',fk);
   document.getElementById('apisetup').classList.add('hidden');
-  toast(fk?'Both keys saved! Live data active.':'Anthropic key saved. Add Finnhub key in TERMINAL tab for live data.');
+  toast('AI Terminal is live. Welcome to Goldman mode.');
   updateKeyIndicator();
 }
 function checkApiKey(){
@@ -905,7 +911,7 @@ function updateKeyIndicator(){
   const k=getApiKey();
   const fk=getFhKey();
   const keyShort=k?('sk-ant-...'+k.slice(-4)):'NOT SET';
-  el.textContent=k?('&#9679; ANTHROPIC KEY ACTIVE: '+keyShort+(fk?' | FINNHUB ACTIVE':' | NO LIVE DATA')):'NOT CONNECTED';
+  el.textContent=k?('&#9679; CONNECTED: '+keyShort+(fk?' + LIVE PRICES':'')):'NOT CONNECTED — tap CHANGE API KEY';
   el.style.color=k?'var(--g)':'var(--rd)';
 }
 
