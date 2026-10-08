@@ -2,6 +2,9 @@
 
 This is a hands-on course. Each lesson teaches Python by solving real EE problems, and every lesson is a runnable script.
 
+> **New to Python? Start with [`00_python_basics/`](00_python_basics/README.md).**
+> It covers installation, syntax, variables, loops, functions and errors, explained line by line, plus a self-checking practice file. Come back here once `practice.py` shows 13/13.
+
 ## Setup (one time)
 
 ```bash
